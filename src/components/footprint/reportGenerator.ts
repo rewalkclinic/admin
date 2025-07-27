@@ -126,8 +126,8 @@ export const generatePDF = async (data: ReportData): Promise<void> => {
     const availableWidth = pageWidth - 2 * margin;
     const gap = 10; // gap between images
     const imageWidth = (availableWidth - gap) / 2;
-    // Increase max image height from 120mm to 140mm
-    const imageHeight = availableHeight > 140 ? 140 : availableHeight; // max 140mm, but fit in available
+    // Increase max image height from 140mm to 170mm
+    const imageHeight = availableHeight > 190 ? 190 : availableHeight; // max 190mm, but fit in available
 
     // Add image labels
     pdf.setFontSize(12);
@@ -246,6 +246,10 @@ export const generatePDF = async (data: ReportData): Promise<void> => {
     // Add website
     currentY = pageHeight - 10;
     pdf.setFontSize(8);
+
+    // Draw a horizontal line at the bottom of the page
+    pdf.setDrawColor(200, 200, 200);
+    pdf.line(margin, pageHeight - 7, pageWidth - margin, pageHeight - 7);
 
     // Save PDF and force download
     const filename = `rewalk_foot_analysis_${data.reportId}.pdf`;
