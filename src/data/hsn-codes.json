@@ -1,0 +1,14 @@
+{
+  "hsnCodes": [
+    {
+      "code": "9021",
+      "description": "Orthopaedic Devices",
+      "taxRate": 5
+    },
+    {
+      "code": "8203",
+      "description": "Hand Tools",
+      "taxRate": 18
+    }
+  ]
+}
