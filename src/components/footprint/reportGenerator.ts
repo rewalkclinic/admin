@@ -55,7 +55,7 @@ export const generatePDF = async (data: ReportData): Promise<void> => {
     // Add address information
     pdf.setFontSize(9);
     pdf.text(
-      "SH-8, 14/1 Subhash pally, Opp.- Hindustan transport building, Near- isi college, Kolkata-700108",
+      "SH-8, 14/1 Subhash pally, Opp.- Hindustan transport building, Near- ISI college, Kolkata-700108",
       pageWidth / 2,
       currentY,
       { align: "center" }
@@ -65,7 +65,7 @@ export const generatePDF = async (data: ReportData): Promise<void> => {
 
     // Add contact information
     pdf.text(
-      "contact@rewalkclinic.com | +91 81003 98976, +91 9171279127",
+      "rewalkclinic@gmail.com | +91 81003 98976, +91 9171279127",
       pageWidth / 2,
       currentY,
       { align: "center" }
@@ -126,7 +126,8 @@ export const generatePDF = async (data: ReportData): Promise<void> => {
     const availableWidth = pageWidth - 2 * margin;
     const gap = 10; // gap between images
     const imageWidth = (availableWidth - gap) / 2;
-    const imageHeight = availableHeight > 120 ? 120 : availableHeight; // max 120mm, but fit in available
+    // Increase max image height from 120mm to 140mm
+    const imageHeight = availableHeight > 140 ? 140 : availableHeight; // max 140mm, but fit in available
 
     // Add image labels
     pdf.setFontSize(12);
@@ -245,9 +246,6 @@ export const generatePDF = async (data: ReportData): Promise<void> => {
     // Add website
     currentY = pageHeight - 10;
     pdf.setFontSize(8);
-    pdf.text("www.rewalkclinic.com", pageWidth / 2, currentY, {
-      align: "center",
-    });
 
     // Save PDF and force download
     const filename = `rewalk_foot_analysis_${data.reportId}.pdf`;
