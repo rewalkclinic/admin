@@ -39,7 +39,6 @@ export function DownloadInvoiceButton({
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
 
       toast({
         title: "Invoice downloaded",
