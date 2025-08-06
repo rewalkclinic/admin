@@ -274,13 +274,12 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
     `;
 
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let browser: any;
+    
     const puppeteer = await import('puppeteer-core');
     const chromiumModule = await import('@sparticuz/chromium');
     const Chromium = chromiumModule.default;
     const executablePath: string = await Chromium.executablePath();
-    browser = await puppeteer.launch({
+    const browser = await puppeteer.launch({
       args: Chromium.args,
       executablePath,
       headless: true,
