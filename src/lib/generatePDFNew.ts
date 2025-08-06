@@ -1,20 +1,6 @@
 
 import path from "path";
 import fs from "fs";
-import * as Puppeteer from 'puppeteer';
-
-const isServerless = process.env.AWS_EXECUTION_ENV || process.env.VERCEL;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let puppeteer: any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let chromium: any = undefined;
-if (isServerless) {
-  // Dynamic import for serverless
-  puppeteer = await import('puppeteer-core');
-  chromium = await import('@sparticuz/chromium');
-} else {
-  puppeteer = Puppeteer;
-}
 
 export type InvoiceItem = {
   name: string;
@@ -290,16 +276,15 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let browser: any;
-    if (isServerless && chromium) {
-      const executablePath: string = chromium.executablePath;
-      browser = await puppeteer.launch({
-        args: chromium.args,
-        executablePath,
-        headless: true,
-      });
-    } else {
-      browser = await puppeteer.launch({ headless: true });
-    }
+    const puppeteer = await import('puppeteer-core');
+    const chromiumModule = await import('@sparticuz/chromium');
+    const Chromium = chromiumModule.default;
+    const executablePath: string = await Chromium.executablePath();
+    browser = await puppeteer.launch({
+      args: Chromium.args,
+      executablePath,
+      headless: true,
+    });
 
     // Create a new page
     const page = await browser.newPage();
