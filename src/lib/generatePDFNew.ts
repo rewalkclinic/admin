@@ -2,10 +2,10 @@
 import path from "path";
 import fs from "fs";
 import * as Puppeteer from 'puppeteer';
-// import type { Browser as PuppeteerBrowser } from 'puppeteer';
 
 const isServerless = process.env.AWS_EXECUTION_ENV || process.env.VERCEL;
-let puppeteer: typeof import('puppeteer') | typeof import('puppeteer-core');
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let puppeteer: any;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let chromium: any = undefined;
 if (isServerless) {
@@ -289,16 +289,16 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
 
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let browser;
+    let browser: any;
     if (isServerless && chromium) {
       const executablePath: string = await chromium.executablePath();
-      browser = await (puppeteer as typeof import('puppeteer-core')).launch({
+      browser = await puppeteer.launch({
         args: chromium.args,
         executablePath,
         headless: true,
       });
     } else {
-      browser = await (puppeteer as typeof import('puppeteer')).launch({ headless: true });
+      browser = await puppeteer.launch({ headless: true });
     }
 
     // Create a new page
@@ -310,8 +310,7 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
     });
 
     // Add page numbers
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (page as any).evaluate(() => {
+    await page.evaluate(() => {
       const pages = document.querySelectorAll('.page');
       pages.forEach((page, index) => {
         const pageNumber = document.createElement('div');
@@ -356,8 +355,6 @@ async function getLogoBase64(): Promise<string> {
     return '';
   }
 }
-
-// ...existing code...
 
 // Helper function to get signature base64
 async function getSignatureBase64(): Promise<string> {
