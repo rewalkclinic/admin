@@ -2,7 +2,7 @@
 import path from "path";
 import fs from "fs";
 import * as Puppeteer from 'puppeteer';
-import type { Browser as PuppeteerBrowser } from 'puppeteer';
+// import type { Browser as PuppeteerBrowser } from 'puppeteer';
 
 const isServerless = process.env.AWS_EXECUTION_ENV || process.env.VERCEL;
 let puppeteer: typeof import('puppeteer') | typeof import('puppeteer-core');
