@@ -291,7 +291,7 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let browser: any;
     if (isServerless && chromium) {
-      const executablePath: string = await chromium.executablePath();
+      const executablePath: string = chromium.executablePath;
       browser = await puppeteer.launch({
         args: chromium.args,
         executablePath,
