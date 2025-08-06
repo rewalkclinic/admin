@@ -1,5 +1,14 @@
 
-import puppeteer from 'puppeteer';
+let puppeteer: typeof import('puppeteer-core');
+let chromium: typeof import('@sparticuz/chromium') | undefined = undefined;
+
+const isServerless = process.env.AWS_EXECUTION_ENV || process.env.VERCEL;
+if (isServerless) {
+  puppeteer = require('puppeteer-core');
+  chromium = require('@sparticuz/chromium');
+} else {
+  puppeteer = require('puppeteer');
+}
 import path from "path";
 import fs from "fs";
 
@@ -45,6 +54,12 @@ type Invoice = {
 
 export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem[] }) {
   try {
+    // Precompute base64 images (cannot use await inside template literal)
+    const logoBase64 = await getLogoBase64();
+    const signatureBase64 = await getSignatureBase64();
+    // No need to fetch QR code for bank details anymore
+    const qrCodeBase64 = '';
+
     // Create HTML content
     const htmlContent = `
       <!DOCTYPE html>
@@ -150,7 +165,7 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
         <body>
           <div class="invoice-container">
             <div class="header">
-              <img src="data:image/png;base64,${await getLogoBase64()}" class="logo" alt="Logo">
+              <img src="data:image/png;base64,${logoBase64}" class="logo" alt="Logo">
               <div class="company-details">
                 <p>SH-8, 14/1 Subhas pally, Opp.- Hindustan transport building, Near- ISI college, Kolkata – 700108</p>
                 <p>rewalkclinic@gmail.com | +91 81003 98976, +91 9171279127</p>
@@ -250,21 +265,18 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
 
             <div style="margin-top: 10px; text-align: right;">
               <p style="margin: 0; font-size: 9px;">Authorised Signature</p>
-              <img src="data:image/png;base64,${await getSignatureBase64()}" style="width: 100px; height: auto; margin-top: 10px;" alt="Signature">
+              <img src="data:image/png;base64,${signatureBase64}" style="width: 100px; height: auto; margin-top: 10px;" alt="Signature">
             </div>
 
-            ${invoice.status === 'PENDING' && invoice.bankDetails ? `
+            ${invoice.status === 'PENDING' ? `
               <div style="display: flex; margin-top: 20px; gap: 20px;">
                 <div style="flex: 1;">
                   <h3 style="margin: 0 0 10px 0; font-size: 11px;">Bank Details:</h3>
-                  <p style="margin: 3px 0; font-size: 9px;"><strong>Bank Name:</strong> ${invoice.bankDetails.bankName}</p>
-                  <p style="margin: 3px 0; font-size: 9px;"><strong>Account Holder:</strong> ${invoice.bankDetails.accountHolder}</p>
-                  <p style="margin: 3px 0; font-size: 9px;"><strong>Account Number:</strong> ${invoice.bankDetails.accountNumber}</p>
-                  <p style="margin: 3px 0; font-size: 9px;"><strong>IFSC Code:</strong> ${invoice.bankDetails.ifscCode}</p>
-                </div>
-                <div style="flex: 1;">
-                  <h3 style="margin: 0 0 10px 0; font-size: 11px;">Scan QR Code to Pay:</h3>
-                  <img src="data:image/png;base64,${await getQRCodeBase64(invoice.bankDetails.qrCodeImagePath)}" style="width: 150px; height: 150px;" alt="QR Code">
+                  <p style="margin: 3px 0; font-size: 9px;"><strong>Bank Name:</strong> AXIS BANK</p>
+                  <p style="margin: 3px 0; font-size: 9px;"><strong>Account Number:</strong> 924020071859005</p>
+                  <p style="margin: 3px 0; font-size: 9px;"><strong>IFSC Code:</strong> UTIB0001592</p>
+                  <p style="margin: 3px 0; font-size: 9px;"><strong>Branch:</strong> BARANAGAR, KOLKATA W.B- 700036</p>
+                  <p style="margin: 3px 0; font-size: 9px;"><strong>Account Holder:</strong> REWALK CLINIC</p>
                 </div>
               </div>
             ` : ''}
@@ -273,14 +285,22 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
       </html>
     `;
 
-    // Launch a new browser instance
-    const browser = await puppeteer.launch({
-      headless: true
-    });
-    
+
+    let browser;
+    if (isServerless && chromium) {
+      const executablePath = await (chromium as any).executablePath();
+      browser = await puppeteer.launch({
+        args: (chromium as any).args,
+        executablePath,
+        headless: true,
+      });
+    } else {
+      browser = await puppeteer.launch({ headless: true });
+    }
+
     // Create a new page
     const page = await browser.newPage();
-    
+
     // Set the content of the page
     await page.setContent(htmlContent, {
       waitUntil: 'networkidle0'

@@ -8,13 +8,7 @@ interface RouteContext {
   params: Promise<{ id: string }>;
 }
 
-interface BankDetails {
-  bankName: string;
-  accountHolder: string;
-  accountNumber: string;
-  ifscCode: string;
-  qrCodeImagePath: string;
-}
+
 
 // Remove local InvoiceItem type, use the one from generatePDFNew
 
@@ -87,16 +81,10 @@ export async function GET(
     }
 
     try {
-      // Fetch bank details if invoice is pending
-      let bankDetails: BankDetails | undefined;
-      if (invoice.status === 'PENDING') {
-        const bankDetailsResponse = await fetch(`${req.headers.get('origin')}/api/bank-details`);
-        if (bankDetailsResponse.ok) {
-          bankDetails = await bankDetailsResponse.json();
-        }
-      }
+
 
       // Since items is stored as JSON in the database, Prisma automatically parses it
+
       const invoiceWithItems = {
         ...invoice,
         items: Array.isArray(invoice.items) ? invoice.items : [invoice.items],
@@ -108,10 +96,9 @@ export async function GET(
         city: invoice.city ?? undefined,
         state: invoice.state ?? undefined,
         pincode: invoice.pincode ?? undefined,
-        bankDetails,
         status: invoice.status as 'PENDING' | 'PAID'
       };
-      
+
       const pdfBytes = await generateInvoicePDF(invoiceWithItems);
 
       // Convert Buffer to Uint8Array for the response
