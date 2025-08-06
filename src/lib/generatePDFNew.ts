@@ -1,16 +1,20 @@
 
-let puppeteer: typeof import('puppeteer-core');
-let chromium: typeof import('@sparticuz/chromium') | undefined = undefined;
-
-const isServerless = process.env.AWS_EXECUTION_ENV || process.env.VERCEL;
-if (isServerless) {
-  puppeteer = require('puppeteer-core');
-  chromium = require('@sparticuz/chromium');
-} else {
-  puppeteer = require('puppeteer');
-}
 import path from "path";
 import fs from "fs";
+import * as Puppeteer from 'puppeteer';
+import type { Browser as PuppeteerBrowser } from 'puppeteer';
+
+const isServerless = process.env.AWS_EXECUTION_ENV || process.env.VERCEL;
+let puppeteer: typeof import('puppeteer') | typeof import('puppeteer-core');
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let chromium: any = undefined;
+if (isServerless) {
+  // Dynamic import for serverless
+  puppeteer = await import('puppeteer-core');
+  chromium = await import('@sparticuz/chromium');
+} else {
+  puppeteer = Puppeteer;
+}
 
 export type InvoiceItem = {
   name: string;
@@ -57,8 +61,6 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
     // Precompute base64 images (cannot use await inside template literal)
     const logoBase64 = await getLogoBase64();
     const signatureBase64 = await getSignatureBase64();
-    // No need to fetch QR code for bank details anymore
-    const qrCodeBase64 = '';
 
     // Create HTML content
     const htmlContent = `
@@ -286,16 +288,17 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
     `;
 
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let browser;
     if (isServerless && chromium) {
-      const executablePath = await (chromium as any).executablePath();
-      browser = await puppeteer.launch({
-        args: (chromium as any).args,
+      const executablePath: string = await chromium.executablePath();
+      browser = await (puppeteer as typeof import('puppeteer-core')).launch({
+        args: chromium.args,
         executablePath,
         headless: true,
       });
     } else {
-      browser = await puppeteer.launch({ headless: true });
+      browser = await (puppeteer as typeof import('puppeteer')).launch({ headless: true });
     }
 
     // Create a new page
@@ -307,7 +310,8 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
     });
 
     // Add page numbers
-    await page.evaluate(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (page as any).evaluate(() => {
       const pages = document.querySelectorAll('.page');
       pages.forEach((page, index) => {
         const pageNumber = document.createElement('div');
@@ -353,20 +357,7 @@ async function getLogoBase64(): Promise<string> {
   }
 }
 
-// Helper function to get QR code base64
-async function getQRCodeBase64(qrCodePath: string): Promise<string> {
-  try {
-    const fullPath = path.join(process.cwd(), qrCodePath);
-    if (fs.existsSync(fullPath)) {
-      const imageData = fs.readFileSync(fullPath);
-      return imageData.toString('base64');
-    }
-    return '';
-  } catch (error) {
-    console.error('Error reading QR code:', error);
-    return '';
-  }
-}
+// ...existing code...
 
 // Helper function to get signature base64
 async function getSignatureBase64(): Promise<string> {
