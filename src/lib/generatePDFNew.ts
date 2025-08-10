@@ -105,12 +105,11 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
               line-height: 0.5;
             }
             .tax-invoice-title {
-              flex: 1;
               text-align: center;
               font-size: 18px;
               font-weight: bold;
               color: #222;
-              margin-top: 10px;
+              margin-top: 5px;
             }
             .original-recipient {
               text-align: right;
@@ -118,13 +117,6 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
               color: #666;
               font-weight: normal;
               margin-top: 2px;
-            }
-            .invoice-title {
-              color: #333;
-              font-size: 16px;
-              font-weight: bold;
-              text-align: center;
-              margin: 10px 0;
             }
             .main-content {
               display: flex;
@@ -164,12 +156,12 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
               padding: 5px;
               border: 1px solid #ddd;
             }
-            .totals-bank-row {
+            .bottom-row {
               display: flex;
               justify-content: space-between;
               align-items: flex-start;
-              gap: 20px;
-              margin-top: 10px;
+              gap: 40px;
+              margin-top: 20px;
             }
             .totals {
               width: 250px;
@@ -193,8 +185,8 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
             }
             .bank-details {
               font-size: 9px;
-              margin-left: 20px;
               min-width: 200px;
+              max-width: 300px;
             }
             .page-number {
               position: fixed;
@@ -209,14 +201,14 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
           <div class="invoice-container">
             <div class="header">
               <img src="data:image/png;base64,${logoBase64}" class="logo" alt="Logo">
-              <div class="tax-invoice-title">Tax Invoice</div>
               <div class="company-details">
                 <p>SH-8, 14/1 Subhas pally, Opp.- Hindustan transport building, Near- ISI college, Kolkata – 700108</p>
                 <p>rewalkclinic@gmail.com | +91 81003 98976, +91 9171279127</p>
                 <p>GSTIN: 19ABLFR1098P1Z8</p>
-                <div class="original-recipient">Original for Recipient</div>
               </div>
             </div>
+            <div class="tax-invoice-title">Tax Invoice</div>
+            <div class="original-recipient">Original for Recipient</div>
 
             <div class="main-content">
               <div class="billing-details">
@@ -262,7 +254,7 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
                 </tr>
               </thead>
               <tbody>
-                ${invoice.items.map(item => {
+                ${invoice.items.map((item, idx) => {
                   const taxAmount = item.total * (item.taxRate / 100);
                   const cgstAmount = invoice.state === "West Bengal" ? taxAmount / 2 : 0;
                   const sgstAmount = invoice.state === "West Bengal" ? taxAmount / 2 : 0;
@@ -273,7 +265,7 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
                   
                   return `
                     <tr>
-                      <td>${item.name}</td>
+                      <td>${idx + 1}. ${item.name}</td>
                       <td>${item.hsnCode}</td>
                       <td>${item.quantity}</td>
                       <td>₹${item.unitPrice.toFixed(2)}</td>
@@ -291,7 +283,15 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
               </tbody>
             </table>
 
-            <div class="totals-bank-row">
+            <div class="bottom-row">
+              <div class="bank-details">
+                <h3 style="margin: 0 0 10px 0; font-size: 11px;">Bank Details:</h3>
+                <p style="margin: 3px 0; font-size: 9px;"><strong>Bank Name:</strong> AXIS BANK</p>
+                <p style="margin: 3px 0; font-size: 9px;"><strong>Account Number:</strong> 924020071859005</p>
+                <p style="margin: 3px 0; font-size: 9px;"><strong>IFSC Code:</strong> UTIB0001592</p>
+                <p style="margin: 3px 0; font-size: 9px;"><strong>Branch:</strong> BARANAGAR, KOLKATA W.B- 700036</p>
+                <p style="margin: 3px 0; font-size: 9px;"><strong>Account Holder:</strong> REWALK CLINIC</p>
+              </div>
               <div class="totals">
                 <p><span>Subtotal:</span> <span>₹${invoice.subtotal.toFixed(2)}</span></p>
                 ${invoice.state === "West Bengal" ? `
@@ -311,18 +311,9 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
                 <div class="amount-words">
                   <strong>Invoice Amount in Words:</strong> ₹${numberToWords(roundedTotal)} Only
                 </div>
+                <!-- Removed number of items summary as per user request -->
                 ${roundingDiff !== 0 ? `<div class="amount-words"><strong>Rounding Off:</strong> ₹${roundingDiff > 0 ? '+' : ''}${roundingDiff.toFixed(2)}</div>` : ''}
               </div>
-              ${invoice.status === 'PENDING' ? `
-                <div class="bank-details">
-                  <h3 style="margin: 0 0 10px 0; font-size: 11px;">Bank Details:</h3>
-                  <p style="margin: 3px 0; font-size: 9px;"><strong>Bank Name:</strong> AXIS BANK</p>
-                  <p style="margin: 3px 0; font-size: 9px;"><strong>Account Number:</strong> 924020071859005</p>
-                  <p style="margin: 3px 0; font-size: 9px;"><strong>IFSC Code:</strong> UTIB0001592</p>
-                  <p style="margin: 3px 0; font-size: 9px;"><strong>Branch:</strong> BARANAGAR, KOLKATA W.B- 700036</p>
-                  <p style="margin: 3px 0; font-size: 9px;"><strong>Account Holder:</strong> REWALK CLINIC</p>
-                </div>
-              ` : ''}
             </div>
 
             <div style="margin-top: 10px; text-align: right;">
