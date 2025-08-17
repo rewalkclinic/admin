@@ -1,4 +1,3 @@
-
 import path from "path";
 import fs from "fs";
 
@@ -65,6 +64,22 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
     // Round total and calculate rounding difference
     const roundedTotal = Math.round(invoice.total);
     const roundingDiff = (roundedTotal - invoice.total);
+
+    // Helper to format date as '1st Jan, 2025'
+    function formatCustomDate(dateInput: string | Date): string {
+      const date = new Date(dateInput);
+      const day = date.getDate();
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const month = monthNames[date.getMonth()];
+      const year = date.getFullYear();
+      // Get ordinal suffix
+      const j = day % 10, k = day % 100;
+      let suffix = "th";
+      if (j === 1 && k !== 11) suffix = "st";
+      else if (j === 2 && k !== 12) suffix = "nd";
+      else if (j === 3 && k !== 13) suffix = "rd";
+      return `${day}${suffix} ${month}, ${year}`;
+    }
 
     // Create HTML content
     const htmlContent = `
@@ -231,7 +246,7 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
               <div class="invoice-details">
                 <h3>Invoice Details:</h3>
                 <p><strong>Invoice No:</strong> ${invoice.invoiceNo}</p>
-                <p><strong>Date:</strong> ${new Date(invoice.createdAt).toLocaleDateString()}</p>
+                <p><strong>Date:</strong> ${formatCustomDate(invoice.createdAt)}</p>
                 <div class="total-top">Total Amount: ₹${roundedTotal.toFixed(2)}</div>
               </div>
             </div>

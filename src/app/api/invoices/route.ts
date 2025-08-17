@@ -18,10 +18,24 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const data = await request.json()
+    // Find the latest invoice number
+    const lastInvoice = await prisma.invoice.findFirst({
+      orderBy: { createdAt: "desc" },
+      select: { invoiceNo: true }
+    })
+    let nextNumber = 1;
+    if (lastInvoice && lastInvoice.invoiceNo) {
+      // Extract the sequence number from the last invoiceNo
+      const match = lastInvoice.invoiceNo.match(/RC_(\d{4})$/);
+      if (match) {
+        nextNumber = parseInt(match[1], 10) + 1;
+      }
+    }
+    const invoiceNo = `RC_${nextNumber.toString().padStart(4, "0")}`;
     const invoice = await prisma.invoice.create({
       data: {
         ...data,
-        invoiceNo: `INV-${Date.now()}`,
+        invoiceNo,
         isGstRegistered: data.type === "BUSINESS",
         companyName: data.type === "BUSINESS" ? data.companyName : null,
         gstin: data.type === "BUSINESS" ? data.gstin : null,
