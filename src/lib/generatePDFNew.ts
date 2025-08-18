@@ -331,9 +331,14 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
               </div>
             </div>
 
+            <!-- spacer to leave room for stamp between amount in words and signature -->
+            <div style="height: 70px;"></div>
             <div style="margin-top: 10px; text-align: right;">
+              <img src="data:image/png;base64,${signatureBase64}" style="width: 100px; height: auto; margin-bottom: 6px;" alt="Signature">
               <p style="margin: 0; font-size: 9px;">Authorised Signature</p>
-              <img src="data:image/png;base64,${signatureBase64}" style="width: 100px; height: auto; margin-top: 10px;" alt="Signature">
+            </div>
+            <div style="margin-top: 8px; text-align: left; font-size: 8px; color: #666;">
+              <p style="margin: 0;">This is a computer generate Invoice</p>
             </div>
           </div>
         </body>
