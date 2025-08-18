@@ -129,10 +129,13 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
             .original-recipient {
               text-align: right;
               font-size: 9px;
-              color: #666;
-              font-weight: normal;
-              margin-top: 2px;
-            }
+                <div style="margin-top: 60px; text-align: right; min-height: 120px;">
+                  <img src="data:image/png;base64,${signatureBase64}" style="width: 100px; height: auto; margin-bottom: 10px;" alt="Signature">
+                  <p style="margin: 0; font-size: 9px;">Authorised Signature</p>
+                </div>
+                <div style="margin-top: 40px; text-align: center; font-size: 10px; color: #666;">
+                  This is a computer generated Invoice
+                </div>
             .main-content {
               display: flex;
               justify-content: space-between;
