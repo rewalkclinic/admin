@@ -45,7 +45,6 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
   try {
     // Precompute base64 images (cannot use await inside template literal)
     const logoBase64 = await getLogoBase64();
-    const signatureBase64 = await getSignatureBase64();
 
     // Helper to convert number to words (simple version for INR)
     function numberToWords(num: number): string {
@@ -301,11 +300,11 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
             <div class="bottom-row">
               <div class="bank-details">
                 <h3 style="margin: 0 0 10px 0; font-size: 11px;">Bank Details:</h3>
-                <p style="margin: 3px 0; font-size: 9px;"><strong>Bank Name:</strong> AXIS BANK</p>
-                <p style="margin: 3px 0; font-size: 9px;"><strong>Account Number:</strong> 924020071859005</p>
-                <p style="margin: 3px 0; font-size: 9px;"><strong>IFSC Code:</strong> UTIB0001592</p>
-                <p style="margin: 3px 0; font-size: 9px;"><strong>Branch:</strong> BARANAGAR, KOLKATA W.B- 700036</p>
-                <p style="margin: 3px 0; font-size: 9px;"><strong>Account Holder:</strong> REWALK CLINIC</p>
+                <p style="margin: 3px 0; font-size: 9px;"><strong>Bank Name:</strong> BANDHAN BANK</p>
+                <p style="margin: 3px 0; font-size: 9px;"><strong>Account Name:</strong> REWALK CLINIC</p>
+                <p style="margin: 3px 0; font-size: 9px;"><strong>Account Number:</strong> 20100079671107</p>
+                <p style="margin: 3px 0; font-size: 9px;"><strong>IFSC Code:</strong> BDBL0001130</p>
+                <p style="margin: 3px 0; font-size: 9px;"><strong>Branch:</strong> DUNLOP, KOLKATA</p>
               </div>
               <div class="totals">
                 <p><span>Subtotal:</span> <span>₹${invoice.subtotal.toFixed(2)}</span></p>
@@ -331,11 +330,10 @@ export async function generateInvoicePDF(invoice: Invoice & { items: InvoiceItem
               </div>
             </div>
 
-            <!-- spacer to leave room for stamp between amount in words and signature -->
-            <div style="height: 70px;"></div>
-            <div style="margin-top: 10px; text-align: right;">
-              <img src="data:image/png;base64,${signatureBase64}" style="width: 100px; height: auto; margin-bottom: 6px;" alt="Signature">
-              <p style="margin: 0; font-size: 9px;">Authorised Signature</p>
+            <!-- blank space for a physical stamp / signature above the signatory line -->
+            <div style="height: 140px;"></div>
+            <div style="text-align: right;">
+              <p style="margin: 0; font-size: 9px;">Authorised Signatory</p>
             </div>
             <div style="margin-top: 8px; text-align: left; font-size: 8px; color: #666;">
               <p style="margin: 0;">This is a computer generate Invoice</p>
@@ -410,17 +408,3 @@ async function getLogoBase64(): Promise<string> {
   }
 }
 
-// Helper function to get signature base64
-async function getSignatureBase64(): Promise<string> {
-  try {
-    const signaturePath = path.join(process.cwd(), "public", "img", "sign.png");
-    if (fs.existsSync(signaturePath)) {
-      const imageData = fs.readFileSync(signaturePath);
-      return imageData.toString('base64');
-    }
-    return '';
-  } catch (error) {
-    console.error('Error reading signature:', error);
-    return '';
-  }
-}
